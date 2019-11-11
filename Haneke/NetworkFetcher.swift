@@ -27,9 +27,9 @@ open class NetworkFetcher<T : DataConvertible> : Fetcher<T> {
     
     let URL : Foundation.URL
     
-    public init(URL : Foundation.URL) {
+    public init(URL : Foundation.URL, timeOut: Double = 7.0) {
         self.URL = URL
-
+        self.timeOut = timeOut
         let key =  URL.absoluteString
         super.init(key: key)
     }
@@ -40,11 +40,16 @@ open class NetworkFetcher<T : DataConvertible> : Fetcher<T> {
     
     var cancelled = false
     
+    var timeOut: Double = 7.0
+    
     // MARK: Fetcher
     
     open override func fetch(failure fail: @escaping ((Error?) -> ()), success succeed: @escaping (T.Result) -> ()) {
+        print("in haneke --->")
         self.cancelled = false
-        self.task = self.session.dataTask(with: self.URL) {[weak self] (data, response, error) -> Void in
+        var request = URLRequest(url: self.URL)
+        request.timeoutInterval = timeOut
+        self.task = self.session.dataTask(with: request) {[weak self] (data, response, error) -> Void in
             if let strongSelf = self {
                 strongSelf.onReceive(data: data, response: response, error: error, failure: fail, success: succeed)
             }
